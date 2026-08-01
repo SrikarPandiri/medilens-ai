@@ -235,9 +235,6 @@ docs/         Architecture, API, and setup notes
 assets/       Screenshots, icons, and demo assets
 ```
 
-
-
-
-- Frontend: `http://localhost:3000`
-- Backend docs: `http://localhost:8000/docs`
+- Frontend: `medilens-ai-wine.vercel.app`
+- Backend docs: `https://medilens-ai-f98w.onrender.com`
 
