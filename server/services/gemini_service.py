@@ -1,7 +1,26 @@
+import logging
+
 from config.settings import get_settings
 from schemas.report import ChatMessage, ExtractedTest
 
 DISCLAIMER = "This information is educational and is not a medical diagnosis or prescription."
+logger = logging.getLogger(__name__)
+
+
+def _fallback_explanation(question: str) -> str:
+    normalized = question.lower()
+    if "mcv" in normalized:
+        return (
+            "MCV means mean corpuscular volume. It describes the average size of your red blood cells. "
+            "Low or high MCV can happen for different reasons, so it should be interpreted with hemoglobin, "
+            "other CBC values, symptoms, and a clinician's advice."
+        )
+
+    topic = question.strip() or "that term"
+    return (
+        f"{topic} is a medical report term. I can explain it generally, but personal meaning depends on the "
+        "full report, reference range, symptoms, and your doctor's interpretation."
+    )
 
 
 def generate_summary(tests: list[ExtractedTest], language: str) -> tuple[str, list[str]]:
@@ -27,7 +46,7 @@ def answer_chat(messages: list[ChatMessage]) -> ChatMessage:
     if not settings.gemini_api_key:
         return ChatMessage(
             role="assistant",
-            content=f"In simple terms: {latest or 'that term'} is a medical report item. Connect Gemini to provide richer explanations."
+            content=_fallback_explanation(latest)
         )
 
     try:
@@ -51,14 +70,15 @@ Conversation:
 
 Answer the latest user question.
 """
-        response = model.generate_content(prompt)
+        response = model.generate_content(prompt, request_options={"timeout": 12})
         text = (response.text or "").strip()
         if not text:
             text = "I could not generate an explanation for that term. Please try rephrasing it."
 
         return ChatMessage(role="assistant", content=text)
-    except Exception:
+    except Exception as exc:
+        logger.exception("Gemini chat request failed: %s", exc)
         return ChatMessage(
             role="assistant",
-            content="I could not reach Gemini right now. Please check the Gemini API key and try again."
+            content=_fallback_explanation(latest)
         )
