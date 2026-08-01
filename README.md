@@ -4,10 +4,12 @@ Understand your health reports, instantly.
 
 MediLens AI is a full-stack healthcare AI web application that extracts lab report data, explains medical parameters in simple language, stores report history, and compares reports over time.
 
-
+---
 # 🎯 Problem Statement
 
 Medical laboratory reports contain complex medical terminology, numerical values, abbreviations, and reference ranges that are difficult for many people to understand. Most patients rely on healthcare professionals to interpret these reports, while others search online and often encounter confusing or unreliable information.
+
+---
 
 ## Challenges
 
@@ -17,7 +19,7 @@ Medical laboratory reports contain complex medical terminology, numerical values
 * Elderly and rural populations face additional language barriers.
 * Tracking health changes across multiple reports is difficult.
 * Existing solutions often provide raw data without meaningful explanations.
-
+---
 ## Impact
 
 Because of these challenges:
@@ -28,7 +30,7 @@ Because of these challenges:
 * Comparing previous reports manually is difficult.
 * Healthcare providers spend additional time explaining basic report details.
 * Overall health literacy remains low.
-
+---
 
 # 💡 Solution
 
@@ -37,6 +39,7 @@ MediLens AI is an AI-powered healthcare assistant that transforms complex labora
 Users simply upload a medical report (PDF or image). The system extracts laboratory values using OCR, identifies medical parameters, compares them with reference ranges, and uses AI to generate plain-language explanations. The application stores reports securely, enables report comparison over time, and supports multiple languages for improved accessibility.
 
 > **Note:** MediLens AI is designed to educate users and improve health literacy. It does **not** diagnose diseases, prescribe medicines, or replace professional medical advice.
+---
 
 
 # ⚙️ How It Works
