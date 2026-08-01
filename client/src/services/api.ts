@@ -11,33 +11,40 @@ async function parseResponse<T>(response: Response): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+async function request<T>(url: string, init?: RequestInit): Promise<T> {
+  try {
+    const response = await fetch(url, init);
+    return parseResponse<T>(response);
+  } catch (error) {
+    if (error instanceof TypeError) {
+      throw new Error(`Could not reach the MediLens API at ${API_BASE_URL}. Check the backend deployment URL and CORS settings.`);
+    }
+
+    throw error;
+  }
+}
+
 export async function uploadReport(file: File, language: string): Promise<ReportSummary> {
   const formData = new FormData();
   formData.append("file", file);
   formData.append("language", language);
 
-  const response = await fetch(`${API_BASE_URL}/api/report/upload`, {
+  return request<ReportSummary>(`${API_BASE_URL}/api/report/upload`, {
     method: "POST",
     body: formData
   });
-
-  return parseResponse<ReportSummary>(response);
 }
 
 export async function fetchReportHistory(): Promise<ReportSummary[]> {
-  const response = await fetch(`${API_BASE_URL}/api/report/history`);
-  return parseResponse<ReportSummary[]>(response);
+  return request<ReportSummary[]>(`${API_BASE_URL}/api/report/history`);
 }
 
 export async function sendChatMessage(messages: ChatMessage[]): Promise<ChatMessage> {
-  const response = await fetch(`${API_BASE_URL}/api/chat`, {
+  return request<ChatMessage>(`${API_BASE_URL}/api/chat`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({ messages })
   });
-
-  return parseResponse<ChatMessage>(response);
 }
-

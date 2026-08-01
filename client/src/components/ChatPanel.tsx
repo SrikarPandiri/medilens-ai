@@ -28,12 +28,12 @@ export function ChatPanel() {
     try {
       const reply = await sendChatMessage(nextMessages);
       setMessages([...nextMessages, reply]);
-    } catch {
+    } catch (error) {
       setMessages([
         ...nextMessages,
         {
           role: "assistant",
-          content: "I could not reach the AI service. Please try again after the backend is running."
+          content: error instanceof Error ? error.message : "I could not reach the AI service."
         }
       ]);
     }
