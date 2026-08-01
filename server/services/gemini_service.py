@@ -1,7 +1,6 @@
 from config.settings import get_settings
 from schemas.report import ChatMessage, ExtractedTest
 
-
 DISCLAIMER = "This information is educational and is not a medical diagnosis or prescription."
 
 
@@ -31,9 +30,35 @@ def answer_chat(messages: list[ChatMessage]) -> ChatMessage:
             content=f"In simple terms: {latest or 'that term'} is a medical report item. Connect Gemini to provide richer explanations."
         )
 
-    # Gemini integration is intentionally isolated here so the route contract stays stable.
-    return ChatMessage(
-        role="assistant",
-        content="Gemini API is configured. Replace this placeholder with the model call for production responses."
-    )
+    try:
+        import google.generativeai as genai
 
+        genai.configure(api_key=settings.gemini_api_key)
+        model = genai.GenerativeModel(settings.gemini_model)
+        conversation = "\n".join(f"{message.role}: {message.content}" for message in messages[-8:])
+        prompt = f"""
+You are MediLens AI, a careful healthcare report explainer.
+
+Rules:
+- Explain medical terms in simple, friendly language.
+- Do not diagnose diseases.
+- Do not prescribe medicines, dosages, or treatment plans.
+- Encourage the user to consult a qualified clinician for abnormal values or personal medical decisions.
+- Keep the answer under 120 words.
+
+Conversation:
+{conversation}
+
+Answer the latest user question.
+"""
+        response = model.generate_content(prompt)
+        text = (response.text or "").strip()
+        if not text:
+            text = "I could not generate an explanation for that term. Please try rephrasing it."
+
+        return ChatMessage(role="assistant", content=text)
+    except Exception:
+        return ChatMessage(
+            role="assistant",
+            content="I could not reach Gemini right now. Please check the Gemini API key and try again."
+        )
