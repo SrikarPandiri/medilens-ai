@@ -22,7 +22,12 @@ app.include_router(chat.router)
 app.include_router(profile.router)
 
 
+@app.get("/")
+@app.head("/")
+async def root() -> dict:
+    return {"status": "ok", "app": settings.app_name}
+
+
 @app.get("/health")
 async def health() -> dict:
     return {"status": "ok", "app": settings.app_name}
-
