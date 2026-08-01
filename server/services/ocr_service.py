@@ -1,18 +1,20 @@
-from fastapi import UploadFile
+from io import BytesIO
 
 
-async def extract_text(file: UploadFile) -> str:
-    content = await file.read()
+def extract_text_from_bytes(content: bytes, content_type: str | None = None) -> str:
     if not content:
         return ""
 
-    # Placeholder until OCR engines are installed/configured in the deployment image.
-    # The parser receives a deterministic sample so the first vertical slice works end-to-end.
-    return """
-    Patient Name: Demo Patient
-    Report Date: 2026-07-31
-    Hemoglobin 13.4 g/dL Reference 12.0-16.0
-    Vitamin D 18 ng/mL Reference 30-100
-    LDL Cholesterol 142 mg/dL Reference <100
-    """
+    if content_type == "text/plain":
+        return content.decode("utf-8", errors="ignore")
 
+    if content_type == "application/pdf":
+        try:
+            from pypdf import PdfReader
+
+            reader = PdfReader(BytesIO(content))
+            return "\n".join(page.extract_text() or "" for page in reader.pages)
+        except Exception:
+            return ""
+
+    return ""

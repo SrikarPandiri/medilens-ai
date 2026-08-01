@@ -4,22 +4,28 @@ from fastapi import APIRouter, File, Form, UploadFile
 
 from schemas.report import ReportSummary
 from services import database_service
-from services.gemini_service import DISCLAIMER, generate_summary
+from services.gemini_service import DISCLAIMER, extract_report_with_gemini, generate_summary
 from services.medical_parser import parse_patient_name, parse_report_date, parse_tests
-from services.ocr_service import extract_text
+from services.ocr_service import extract_text_from_bytes
 
 router = APIRouter(prefix="/api/report", tags=["report"])
 
 
 @router.post("/upload", response_model=ReportSummary)
 async def upload_report(file: UploadFile = File(...), language: str = Form("English")) -> ReportSummary:
-    raw_text = await extract_text(file)
-    tests = parse_tests(raw_text)
+    content = await file.read()
+    raw_text, patient_name, report_date, tests = extract_report_with_gemini(content, file.content_type, language)
+    if not tests:
+        raw_text = raw_text or extract_text_from_bytes(content, file.content_type)
+        tests = parse_tests(raw_text)
+        patient_name = patient_name or parse_patient_name(raw_text)
+        report_date = report_date or parse_report_date(raw_text)
+
     summary, lifestyle_tips = generate_summary(tests, language)
     report = ReportSummary(
         id=str(uuid4()),
-        patientName=parse_patient_name(raw_text),
-        reportDate=parse_report_date(raw_text),
+        patientName=patient_name,
+        reportDate=report_date,
         language=language,
         tests=tests,
         summary=summary,
@@ -60,4 +66,3 @@ async def compare_reports() -> dict:
         "reportsCompared": len(reports),
         "message": "Comparison service is ready for historical trend logic."
     }
-
